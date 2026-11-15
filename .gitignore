@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Secrets (passwords, API keys) - never commit
+.streamlit/secrets.toml
+
+# Files containing original student IDs - keep LOCAL ONLY, never publish
+data/*
+!data/EduNexus_public_demo.xlsx
+!data/README.md
