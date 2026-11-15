@@ -1,0 +1,159 @@
+# EduNexus configuration
+# Edit this file (or use the Administration page) to change data sources,
+# policy thresholds and code labels. No code changes are needed.
+
+app:
+  name: "EduNexus"
+  subtitle: "University Student Analytics & Insights"
+  institution: "University"
+
+# ---------------------------------------------------------------------------
+# Data source
+#   type: excel     -> reads the workbook below
+#   type: database  -> reads via SQLAlchemy (any DB with a driver installed)
+# Switching sources requires no code changes: the rest of the app only sees
+# the standard column names defined under `columns`.
+# ---------------------------------------------------------------------------
+data_source:
+  type: excel
+  excel:
+    path: "data/EduNexus_public_demo.xlsx"
+    sheet: 0            # sheet index or name
+    demo: true          # true = show "DEMO DATA" banner on every page
+
+  database:
+    # Example URLs:
+    #   postgresql+psycopg2://user:pass@host:5432/sis
+    #   mssql+pyodbc://user:pass@DSN
+    #   oracle+oracledb://user:pass@host:1521/?service_name=PROD
+    #   sqlite:///data/edunexus.db
+    # Prefer setting the URL in the EDUNEXUS_DB_URL environment variable
+    # so passwords are not stored in this file.
+    url: ""
+    url_env: "EDUNEXUS_DB_URL"
+    # Either a table/view name or a full SQL query
+    table: "student_term_enrollment"
+    query: ""
+  cache_ttl_seconds: 900
+
+# Datasets offered in Administration > Data source (one-click switch).
+# Uploading a new workbook adds it here as real (demo: false) data.
+datasets:
+  - name: "Public demo - made-up IDs, synthetic workload (safe to publish)"
+    path: "data/EduNexus_public_demo.xlsx"
+    demo: true
+  - name: "Demo - synthetic workload, original IDs (local only)"
+    path: "data/TestStudents_demo.xlsx"
+    demo: true
+  - name: "Original upload - TestStudents.xlsx (local only)"
+    path: "data/TestStudents.xlsx"
+    demo: false
+
+# Map source column names -> standard names used by the app.
+# If the database uses different names, change only the left-hand values.
+columns:
+  TERM: TERM
+  PIDM: PIDM
+  ZID: ZID
+  Student_Type: Student_Type
+  Level: Level
+  Classification: Classification
+  Program: Program
+  Program_Description: Program_Description
+  Major: Major
+  Campus: Campus
+  Time_Status: Time_Status
+  Gender: Gender
+  Ethnicity: Ethnicity
+  COURSES: COURSES
+  CREDIT_HOURS: CREDIT_HOURS
+  BILL_HOURS: BILL_HOURS
+  WITHDRAWALS: WITHDRAWALS
+  Pell: Pell
+
+# ---------------------------------------------------------------------------
+# Academic credit-load policy (per term)
+# ---------------------------------------------------------------------------
+credit_policy:
+  applies_to_levels: ["UG"]        # levels the policy is checked against
+  full_time_min: 12                # minimum credit hours for full-time
+  overload_threshold: 18.5         # above this needs chair / Student Accounts permission
+  max_credits: 24                  # absolute maximum per term
+  typical_load: 16                 # typical undergraduate load (reference line)
+
+# ---------------------------------------------------------------------------
+# Data quality thresholds
+# ---------------------------------------------------------------------------
+data_quality:
+  max_courses_per_term: 10
+  max_withdrawals_flag: 5          # flag students with more withdrawals than this
+  credit_bill_tolerance: 0.0       # allowed |CREDIT_HOURS - BILL_HOURS|
+
+# ---------------------------------------------------------------------------
+# Insight thresholds
+# ---------------------------------------------------------------------------
+insights:
+  high_withdrawal_rate_pct: 15     # programs above this withdrawal rate are highlighted
+  min_group_size: 15               # ignore groups smaller than this in rankings
+
+# Optional: AI narrative using the Anthropic API.
+# Set ANTHROPIC_API_KEY in the environment to enable; otherwise the
+# built-in rule-based insight engine is used. Only aggregated statistics
+# (never student-level records) are sent.
+ai:
+  enabled: true
+  model: "claude-sonnet-5-5"
+  api_key_env: "ANTHROPIC_API_KEY"
+  max_tokens: 1200
+
+# ---------------------------------------------------------------------------
+# Code labels. Codes not listed here are shown as-is.
+# Labels marked "(verify)" are assumptions - please confirm with the
+# Registrar and edit as needed.
+# ---------------------------------------------------------------------------
+labels:
+  Level:
+    UG: "Undergraduate"
+    GR: "Graduate"
+    PR: "Professional"
+    DE: "Doctorate - Education (verify)"
+    CD: "Certificate / Credential (verify)"
+    PH: "PhD (verify)"
+    DN: "Doctor of Nursing (verify)"
+  Classification:
+    FR: "Freshman"
+    SO: "Sophomore"
+    JR: "Junior"
+    SR: "Senior"
+    GM: "Graduate - Masters (verify)"
+    PR: "Professional"
+    DE: "Doctorate - Education (verify)"
+    CD: "Certificate (verify)"
+    PH: "PhD (verify)"
+    DN: "Doctor of Nursing (verify)"
+  Time_Status:
+    F: "Full-time"
+    T: "Three-quarter time (verify)"
+    H: "Half-time"
+    L: "Less than half-time (verify)"
+    P: "Part-time (verify)"
+    N: "Not reported / Non-credit (verify)"
+  Gender:
+    F: "Female"
+    M: "Male"
+  Pell:
+    Y: "Pell recipient"
+    N: "Non-Pell"
+  Campus:
+    "1": "Main Campus"
+    "X": "Off-site / Online (verify)"
+  Student_Type: {}   # e.g.  F: "First-time", T: "Transfer"  - add when confirmed
+  Term:
+    "10": "Spring"
+    "20": "Summer"
+    "30": "Fall"
+
+# Ordering used in charts
+order:
+  Classification: [FR, SO, JR, SR, GM, PR, DE, CD, PH, DN]
+  Level: [UG, GR, PR, DE, PH, DN, CD]
